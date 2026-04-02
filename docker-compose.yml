@@ -1,0 +1,52 @@
+services:
+  # Build the base image first: podman-compose build base
+  # Then build the project image: podman-compose build claude
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        HOST_UID: ${HOST_UID:-501}
+    image: claude-code-base
+    entrypoint: ["true"]
+    profiles:
+      - build
+
+  claude:
+    build:
+      context: .
+      args:
+        HOST_UID: ${HOST_UID:-501}
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ${WORKSPACE_PATH:-.}:/workspace
+      - claude-data:/home/claude/.claude
+      # Memory sharing: when HOST_MEMORY_DIR is set (by claude-docker.sh),
+      # the host's project memory is bind-mounted into the container so
+      # memories are shared between native Claude Code and the container.
+      # Falls back to a named volume when not set (direct docker compose use).
+      - ${HOST_MEMORY_DIR:-claude-memory}:/home/claude/.claude/projects/-workspace/memory
+      # Build tool caches: persist across projects and container restarts
+      - gradle-cache:/home/claude/.gradle
+      - maven-cache:/home/claude/.m2
+      # Shell history persisted across container restarts
+      - shell-history:/commandhistory
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    # Podman-in-Podman: privileged enables nested containers for Testcontainers
+    # and docker-compose infra. On macOS this is safe — Podman runs in a Linux VM,
+    # so privileged only grants access within the VM, not the macOS host.
+    # The only host connection is the workspace bind-mount.
+    privileged: true
+    # tini as PID 1: reaps zombie processes from Claude Code's child processes
+    # (MCP servers, bash commands, Podman, Testcontainers)
+    init: true
+
+volumes:
+  claude-data:
+  claude-memory:
+  gradle-cache:
+  maven-cache:
+  shell-history:
