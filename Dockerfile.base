@@ -33,7 +33,7 @@ RUN mkdir -p /commandhistory && chmod 777 /commandhistory
 ENV DEVCONTAINER=true
 
 # ── Entrypoint (before USER switch, needs root for chmod) ───────────────────
-COPY entrypoint.sh /entrypoint.sh
+COPY container/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # ── Non-root user (UID matches host user so mounted files are read/writable) ─
@@ -63,10 +63,10 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ── Claude Code configuration ───────────────────────────────────────────────
-COPY --chown=claude:claude claude-config.json /home/claude/.claude.json
-# Container-specific instructions for Claude Code (copied to volume by entrypoint)
+COPY --chown=claude:claude container/claude-config.json /home/claude/.claude.json
+# Container-specific instructions for Claude Code (renamed to CLAUDE.md by entrypoint)
 RUN mkdir -p /home/claude/.claude-defaults
-COPY --chown=claude:claude CLAUDE.md /home/claude/.claude-defaults/CLAUDE.md
+COPY --chown=claude:claude container/claude-container-instructions.md /home/claude/.claude-defaults/CLAUDE.md
 
 WORKDIR /workspace
 ENTRYPOINT ["/entrypoint.sh"]

@@ -187,10 +187,12 @@ claude-docker/
 ├── Dockerfile.base        # Base image: Node, Podman, Claude Code, MCP servers, Playwright, uv
 ├── Dockerfile             # Project image example: Java, Gradle, Maven, .NET (extend from base)
 ├── docker-compose.yml     # Service definitions with volume mounts
-├── claude-config.json     # Claude Code config: MCP servers, onboarding, workspace trust
-├── entrypoint.sh          # Podman socket, auth check, settings init, argument routing
 ├── claude-docker.sh       # Wrapper script for CLI usage
-├── CLAUDE.md              # Instructions for Claude Code inside the container
+├── container/
+│   ├── claude-config.json                # Claude Code config: MCP servers, onboarding, workspace trust
+│   ├── claude-container-instructions.md  # Instructions for Claude Code inside the container
+│   └── entrypoint.sh                    # Podman socket, auth check, settings init, argument routing
+├── CLAUDE.md              # Instructions for developing this repo
 ├── .env.example           # Template for environment variables
 └── README.md
 ```
@@ -220,7 +222,7 @@ podman-compose down -v
 
 ### MCP servers
 
-Edit `claude-config.json` and rebuild:
+Edit `container/claude-config.json` and rebuild:
 
 ```bash
 podman-compose --profile build build base

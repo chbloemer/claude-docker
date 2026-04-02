@@ -2,43 +2,29 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Container Environment
+## Project Overview
 
-You are running inside a Docker container. The container IS the security boundary — `/workspace` is the only host-mounted directory.
+This repository builds a Docker container for running Claude Code in isolation. It uses a two-layer image architecture: a base image (`Dockerfile.base`) with common tools and a project-specific image (`Dockerfile`) that extends it.
 
-## Available Tools
-- **Java 25** (Amazon Corretto, default) + **Java 21** available — both via SDKMAN (`sdk use java 21-amzn` / `sdk use java 25-amzn`)
-- **Gradle 9.4.1** (via SDKMAN), **Maven**
-- **.NET 8 SDK** (for NSwag API client generation)
-- **Podman** (rootless, nested containers) — use `podman` instead of `docker`
-- **podman-compose** — use instead of `docker-compose`
-- **Node.js 22**, **npx** (postinstall scripts disabled globally for security; use `--ignore-scripts=false` for trusted packages)
-- **Python 3**, **uv**, **uvx**
-- **Git**, **jq**, **curl**, **ripgrep**, **fzf**, **git-delta**
+## Building (from host)
 
-## Container Runtime
-- Podman socket runs at `$DOCKER_HOST` and is symlinked to `/var/run/docker.sock`
-- Testcontainers works out of the box — do not set `DOCKER_HOST` manually
-- `TESTCONTAINERS_RYUK_DISABLED=true` is set (required for rootless Podman)
-- Use `podman` and `podman-compose` commands, not `docker` / `docker-compose`
-
-## MCP Servers
-- **context7** — library/framework documentation lookup
-- **serena** — semantic code analysis (symbols, references, renaming)
-- **sequential-thinking** — structured multi-step reasoning
-- **playwright** — headless Chromium browser automation
-
-## Working Directory
-- `/workspace` is the mounted host project directory
-- Files are owned by the host user (UID matching) — no permission issues
-
-## Limitations
-- No GUI, no desktop browser — Playwright runs headless only
-- No host network access beyond what Podman allows
-
-## Building This Container (from host)
 ```bash
 podman-compose --profile build build base   # base image (once, or after updating)
 podman-compose build claude                 # project image
 podman-compose build --no-cache             # clean rebuild
 ```
+
+## Key Files
+
+- `Dockerfile.base` — base image: Node 22, Podman, Claude Code, MCP servers, Playwright, uv
+- `Dockerfile` — project image example extending the base (Java, Gradle, Maven, .NET)
+- `docker-compose.yml` — service definitions with volume mounts
+- `claude-docker.sh` — wrapper script for CLI usage
+- `container/` — files copied into the Docker image:
+  - `claude-config.json` — Claude Code config: MCP servers, onboarding, workspace trust
+  - `claude-container-instructions.md` — instructions for Claude Code inside the container (copied as `~/.claude/CLAUDE.md` at startup)
+  - `entrypoint.sh` — Podman socket, auth check, settings init, argument routing
+
+## Container Instructions
+
+The file `container/claude-container-instructions.md` is what Claude Code sees when running inside the container. It is deliberately named differently to avoid being picked up by Claude Code on the host. The entrypoint copies it to `~/.claude/CLAUDE.md` on each container start.
