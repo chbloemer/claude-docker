@@ -10,6 +10,16 @@ ensure_dir() {
 ensure_dir ~/.claude
 ensure_dir ~/.claude/projects/-workspace/memory
 
+# Mounting the memory volume at a nested path makes Podman auto-create the
+# intermediate dirs (projects, -workspace) as root. Claude Code runs as
+# `claude` and writes its session transcript into -workspace/<session>.jsonl,
+# so those dirs must be claude-writable — otherwise no transcript is written
+# and the statusLine can't compute context usage. chown non-recursively to
+# avoid touching the bind-mounted memory/ contents.
+for d in ~/.claude/projects ~/.claude/projects/-workspace; do
+    [ -w "$d" ] || sudo chown claude:claude "$d"
+done
+
 # Ensure settings exist (volume starts empty).
 # skipDangerousModePermissionPrompt is safe here because the container itself
 # is the security boundary — there is no access to the host beyond /workspace.
@@ -19,13 +29,27 @@ if [ ! -f ~/.claude/settings.json ]; then
   "skipDangerousModePermissionPrompt": true,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
   }
 }
 JSON
+elif ! jq -e '.statusLine' ~/.claude/settings.json >/dev/null 2>&1; then
+    # Settings already exist (persistent volume) but predate the statusLine —
+    # add it without touching the user's other settings.
+    tmp=$(mktemp)
+    jq '.statusLine = {"type": "command", "command": "bash ~/.claude/statusline-command.sh"}' \
+        ~/.claude/settings.json > "$tmp" && mv "$tmp" ~/.claude/settings.json
 fi
 
 # Copy container-specific CLAUDE.md (updated on each start from image defaults)
 cp /home/claude/.claude-defaults/CLAUDE.md ~/.claude/CLAUDE.md 2>/dev/null || true
+
+# Copy statusLine script (updated on each start from image defaults)
+cp /home/claude/.claude-defaults/statusline-command.sh ~/.claude/statusline-command.sh 2>/dev/null || true
+chmod +x ~/.claude/statusline-command.sh 2>/dev/null || true
 
 # Persist shell history across container restarts
 export HISTFILE=/commandhistory/.bash_history

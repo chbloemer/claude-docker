@@ -67,6 +67,8 @@ COPY --chown=claude:claude container/claude-config.json /home/claude/.claude.jso
 # Container-specific instructions for Claude Code (renamed to CLAUDE.md by entrypoint)
 RUN mkdir -p /home/claude/.claude-defaults
 COPY --chown=claude:claude container/claude-container-instructions.md /home/claude/.claude-defaults/CLAUDE.md
+# statusLine script (copied to ~/.claude by entrypoint, wired into settings.json)
+COPY --chown=claude:claude container/statusline-command.sh /home/claude/.claude-defaults/statusline-command.sh
 
 WORKDIR /workspace
 ENTRYPOINT ["/entrypoint.sh"]

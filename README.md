@@ -61,6 +61,15 @@ podman-compose run --rm claude
 # or: docker compose run --rm claude
 ```
 
+Or rebuild both images in one step with the helper script:
+
+```bash
+./rebuild.sh             # rebuild base + project image
+./rebuild.sh --no-cache  # clean rebuild, ignoring the layer cache
+./rebuild.sh --base      # rebuild only the base image
+./rebuild.sh --project   # rebuild only the project image
+```
+
 On the first start you'll be prompted to authenticate (see [Authentication](#authentication)).
 
 ## Extending the base image
@@ -188,6 +197,7 @@ claude-docker/
 ├── Dockerfile             # Project image example: Java, Gradle, Maven, .NET (extend from base)
 ├── docker-compose.yml     # Service definitions with volume mounts
 ├── claude-docker.sh       # Wrapper script for CLI usage
+├── rebuild.sh             # Helper script to rebuild the base + project images
 ├── container/
 │   ├── claude-config.json                # Claude Code config: MCP servers, onboarding, workspace trust
 │   ├── claude-container-instructions.md  # Instructions for Claude Code inside the container
@@ -225,8 +235,7 @@ podman-compose down -v
 Edit `container/claude-config.json` and rebuild:
 
 ```bash
-podman-compose --profile build build base
-podman-compose build claude
+./rebuild.sh
 ```
 
 ## Troubleshooting
@@ -240,7 +249,7 @@ Run `claude login` inside the container (OAuth), or set `ANTHROPIC_API_KEY` in `
 Rebuild without cache:
 
 ```bash
-podman-compose --profile build build base --no-cache
+./rebuild.sh --no-cache
 ```
 
 ### Testcontainers can't find Docker

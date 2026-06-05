@@ -23,6 +23,7 @@ podman-compose build --no-cache             # clean rebuild
 - `container/` — files copied into the Docker image:
   - `claude-config.json` — Claude Code config: MCP servers, onboarding, workspace trust
   - `claude-container-instructions.md` — instructions for Claude Code inside the container (copied as `~/.claude/CLAUDE.md` at startup)
+  - `statusline-command.sh` — statusLine script (copied to `~/.claude/` at startup, wired into `settings.json`)
   - `entrypoint.sh` — Podman socket, auth check, settings init, argument routing
 
 ## Container Instructions
