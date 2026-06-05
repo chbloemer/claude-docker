@@ -51,6 +51,13 @@ cp /home/claude/.claude-defaults/CLAUDE.md ~/.claude/CLAUDE.md 2>/dev/null || tr
 cp /home/claude/.claude-defaults/statusline-command.sh ~/.claude/statusline-command.sh 2>/dev/null || true
 chmod +x ~/.claude/statusline-command.sh 2>/dev/null || true
 
+# Copy bundled skills (updated on each start from image defaults)
+if [ -d /home/claude/.claude-defaults/skills ]; then
+    mkdir -p ~/.claude/skills
+    cp -r /home/claude/.claude-defaults/skills/. ~/.claude/skills/ 2>/dev/null || true
+    chmod +x ~/.claude/skills/*/checks.sh 2>/dev/null || true
+fi
+
 # Persist shell history across container restarts
 export HISTFILE=/commandhistory/.bash_history
 touch "$HISTFILE"

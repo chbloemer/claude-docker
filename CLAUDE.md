@@ -21,11 +21,13 @@ podman-compose build --no-cache             # clean rebuild
 - `docker-compose.yml` — service definitions with volume mounts
 - `claude-docker.sh` — wrapper script for CLI usage
 - `rebuild.sh` — rebuild base + project images (`--no-cache`/`--base`/`--project`)
-- `test.sh` — smoke-test installed tools + versions inside the image (`./test.sh` or `./test.sh base`); expected versions are pinned at the top and must stay in sync with the Dockerfiles
+- `test.sh` — host-side smoke-test: pipes `container/checks.sh` into the image (`./test.sh` or `./test.sh base`)
 - `container/` — files copied into the Docker image:
   - `claude-config.json` — Claude Code config: MCP servers, onboarding, workspace trust
   - `claude-container-instructions.md` — instructions for Claude Code inside the container (copied as `~/.claude/CLAUDE.md` at startup)
   - `statusline-command.sh` — statusLine script (copied to `~/.claude/` at startup, wired into `settings.json`)
+  - `checks.sh` — environment checks (verify installed tools + pinned versions); single source run by both `test.sh` and the in-container skill. Expected versions are pinned at the top and must stay in sync with the Dockerfiles
+  - `skills/` — skills baked into the image, copied to `~/.claude/skills/` at startup. `test-claude-docker` runs `checks.sh` so Claude Code inside the container can self-check
   - `entrypoint.sh` — Podman socket, auth check, settings init, argument routing
 
 ## Container Instructions

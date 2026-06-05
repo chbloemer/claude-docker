@@ -81,7 +81,9 @@ After a build, smoke-test that every tool the Dockerfiles install is present and
 ./test.sh base      # test the base image only
 ```
 
-The script pipes itself into the container, runs version checks, and prints a `✓ / ! / ?` report with a pass/warn/fail summary (exit code non-zero on failure). Expected versions live at the top of `test.sh` — keep them in sync when bumping a pin in a Dockerfile.
+The script pipes `container/checks.sh` into the container, which prints a `✓ / ! / ✗` report with a pass/warn/fail summary (exit code non-zero on failure). Expected versions live at the top of `container/checks.sh` — keep them in sync when bumping a pin in a Dockerfile.
+
+The same `checks.sh` is baked into the image as the **`test-claude-docker` skill**, so Claude Code running *inside* the container can self-check its environment — just ask it to "test the container" or invoke the skill.
 
 ## Extending the base image
 
@@ -213,6 +215,9 @@ claude-docker/
 ├── container/
 │   ├── claude-config.json                # Claude Code config: MCP servers, onboarding, workspace trust
 │   ├── claude-container-instructions.md  # Instructions for Claude Code inside the container
+│   ├── statusline-command.sh             # statusLine script (wired into settings.json at startup)
+│   ├── checks.sh                         # Environment checks (run by test.sh and the in-container skill)
+│   ├── skills/                           # Skills baked into the image (e.g. test-claude-docker)
 │   └── entrypoint.sh                    # Podman socket, auth check, settings init, argument routing
 ├── CLAUDE.md              # Instructions for developing this repo
 ├── .env.example           # Template for environment variables

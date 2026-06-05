@@ -40,7 +40,10 @@ ENV DEVCONTAINER=true
 
 # ── Entrypoint (before USER switch, needs root for chmod) ───────────────────
 COPY container/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# chmod 755 (not +x): the entrypoint runs as the non-root `claude` user, which
+# needs BOTH read and execute. `chmod +x` only adds execute, so a restrictive
+# source mode (e.g. 600) would yield 711 — unreadable by claude, "Permission denied".
+RUN chmod 755 /entrypoint.sh
 
 # ── Non-root user (UID matches host user so mounted files are read/writable) ─
 ARG HOST_UID=501
@@ -76,6 +79,10 @@ RUN mkdir -p /home/claude/.claude-defaults
 COPY --chown=claude:claude container/claude-container-instructions.md /home/claude/.claude-defaults/CLAUDE.md
 # statusLine script (copied to ~/.claude by entrypoint, wired into settings.json)
 COPY --chown=claude:claude container/statusline-command.sh /home/claude/.claude-defaults/statusline-command.sh
+# Skills bundled into the image (copied to ~/.claude/skills by entrypoint).
+# test-claude-docker pairs the SKILL.md with the same checks.sh that ./test.sh runs.
+COPY --chown=claude:claude container/skills/ /home/claude/.claude-defaults/skills/
+COPY --chown=claude:claude container/checks.sh /home/claude/.claude-defaults/skills/test-claude-docker/checks.sh
 
 WORKDIR /workspace
 ENTRYPOINT ["/entrypoint.sh"]
