@@ -59,7 +59,8 @@ ENV TESTCONTAINERS_RYUK_DISABLED=true
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # ── uv / uvx (for Serena MCP) ──────────────────────────────────────────────
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ARG UV_VERSION=0.11.19
+RUN curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
 ENV PATH="/home/claude/.local/bin:${PATH}"
 
 # ── Claude Code configuration ───────────────────────────────────────────────

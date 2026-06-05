@@ -75,12 +75,20 @@ if command -v podman &>/dev/null; then
     # Symlink to standard Docker socket path so tools find it without config
     sudo ln -sf "$PODMAN_SOCK" /var/run/docker.sock
     # Wait for socket to be ready and verify it responds
+    podman_ready=false
     for _ in {1..10}; do
         if [ -S "$PODMAN_SOCK" ] && podman info >/dev/null 2>&1; then
+            podman_ready=true
             break
         fi
         sleep 1
     done
+    # Warn (don't abort) — only Testcontainers / nested containers need this,
+    # and a clear message here beats a cryptic failure deep in a test run.
+    if [ "$podman_ready" != true ]; then
+        echo "WARNING: Podman socket did not become ready within 10s." >&2
+        echo "         Testcontainers and nested containers may not work. Check 'podman info'." >&2
+    fi
 fi
 
 # Source SDKMAN if available (installed in project-specific images)

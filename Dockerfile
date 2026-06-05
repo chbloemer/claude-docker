@@ -1,19 +1,18 @@
 FROM claude-code-base
 
-# ── Java + Gradle (via SDKMAN) ─────────────────────────────────────────────
+# ── Java + Gradle + Maven (via SDKMAN) ─────────────────────────────────────
+# Maven comes from SDKMAN too (not apt) so the whole toolchain shares one JVM —
+# the apt maven package pulls in a second OpenJDK and muddies JAVA_HOME.
 RUN curl -s "https://get.sdkman.io" | bash \
     && bash -c "source ~/.sdkman/bin/sdkman-init.sh \
     && sdk install java 21.0.10-amzn \
     && sdk install java 25.0.2-amzn \
     && sdk default java 25.0.2-amzn \
-    && sdk install gradle 9.4.1"
+    && sdk install gradle 9.4.1 \
+    && sdk install maven 3.9.9"
 ENV SDKMAN_DIR=/home/claude/.sdkman
 ENV JAVA_HOME=${SDKMAN_DIR}/candidates/java/current
-ENV PATH="${SDKMAN_DIR}/candidates/java/current/bin:${SDKMAN_DIR}/candidates/gradle/current/bin:${PATH}"
-
-# ── Maven ───────────────────────────────────────────────────────────────────
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends maven \
-    && sudo rm -rf /var/lib/apt/lists/*
+ENV PATH="${SDKMAN_DIR}/candidates/java/current/bin:${SDKMAN_DIR}/candidates/gradle/current/bin:${SDKMAN_DIR}/candidates/maven/current/bin:${PATH}"
 
 # ── .NET 8 SDK (required by NSwag for API client generation) ───────────────
 RUN curl -sSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \

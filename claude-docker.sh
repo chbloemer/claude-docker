@@ -5,8 +5,11 @@
 export WORKSPACE_PATH="$(pwd)"
 
 # Compute host memory path so container and host share project memory.
-# Claude Code uses the absolute path with slashes replaced by dashes as project key.
-HOST_PROJECT_KEY="-$(echo "$WORKSPACE_PATH" | sed 's|^/||; s|/|-|g')"
+# Claude Code derives the project key from the absolute path by replacing every
+# non-alphanumeric character (/, ., _, …) with a dash. Mirror that exactly,
+# otherwise the bind-mount points at a directory the native install never reads
+# and memory sharing silently breaks.
+HOST_PROJECT_KEY="$(echo "$WORKSPACE_PATH" | sed 's/[^a-zA-Z0-9]/-/g')"
 HOST_MEMORY_DIR="$HOME/.claude/projects/$HOST_PROJECT_KEY/memory"
 mkdir -p "$HOST_MEMORY_DIR"
 export HOST_MEMORY_DIR

@@ -4,43 +4,52 @@
 
 input=$(cat)
 
-# Helper: extract via python (always available on macOS)
-get() {
-  python3 -c "import sys, json; d=json.load(sys.stdin);
-keys='$1'.split('.')
-v=d
-for k in keys:
-    v=v.get(k) if isinstance(v, dict) else None
-    if v is None: break
-print(v if v is not None else '')" <<< "$input"
-}
-
-model=$(get "model.display_name")
-cwd=$(get "workspace.current_dir")
-[ -z "$cwd" ] && cwd=$(get "cwd")
-folder=$(basename "$cwd")
-
-# Cost & context from session info
-cost=$(python3 -c "import sys, json; d=json.load(sys.stdin); c=d.get('cost',{}); print(f\"\${c.get('total_cost_usd',0):.2f}\" if isinstance(c, dict) else '')" <<< "$input")
-ctx_tokens=$(python3 -c "
+# Extract everything in ONE python3 pass (statusLine renders often — avoid
+# forking an interpreter per field). Emits tab-separated:
+#   model <TAB> cwd <TAB> cost <TAB> ctx_tokens
+IFS=$'\t' read -r model cwd cost ctx_tokens <<EOF
+$(python3 -c '
 import sys, json
-d=json.load(sys.stdin)
-t=d.get('transcript_path','')
-total=0
+
+d = json.load(sys.stdin)
+
+def dig(obj, path):
+    for k in path.split("."):
+        obj = obj.get(k) if isinstance(obj, dict) else None
+        if obj is None:
+            return None
+    return obj
+
+model = dig(d, "model.display_name") or ""
+cwd = dig(d, "workspace.current_dir") or d.get("cwd") or ""
+
+cost = dig(d, "cost.total_cost_usd")
+cost = f"${cost:.2f}" if isinstance(cost, (int, float)) else ""
+
+# Context size = usage of the most recent transcript message that has it.
+ctx = 0
+t = d.get("transcript_path", "")
 try:
     with open(t) as f:
         for line in f:
             try:
-                obj=json.loads(line)
-                u=obj.get('message',{}).get('usage')
-                if u:
-                    total=(u.get('input_tokens',0) or 0) + (u.get('cache_read_input_tokens',0) or 0) + (u.get('cache_creation_input_tokens',0) or 0)
-            except: pass
-except: pass
-print(total)
-" <<< "$input")
+                u = json.loads(line).get("message", {}).get("usage")
+            except Exception:
+                continue
+            if u:
+                ctx = ((u.get("input_tokens") or 0)
+                       + (u.get("cache_read_input_tokens") or 0)
+                       + (u.get("cache_creation_input_tokens") or 0))
+except Exception:
+    pass
 
-# Context percentage (200k window default; 1M for opus 4.7 1m)
+print("\t".join([model, cwd, cost, str(ctx)]))
+' <<< "$input")
+EOF
+
+folder=$(basename "$cwd")
+
+# Context percentage (200k window default; 1M for the 1M-context models)
 ctx_max=200000
 case "$model" in
   *1M*|*"1m"*) ctx_max=1000000 ;;
