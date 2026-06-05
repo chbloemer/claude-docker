@@ -14,7 +14,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN npm config set ignore-scripts true --location=global
 
 # ── Playwright (headless Chromium) ──────────────────────────────────────────
-RUN npx --ignore-scripts=false playwright install --with-deps chromium
+# Install to a shared, world-readable path instead of /root/.cache: this step
+# runs as root (--with-deps needs apt), but the Playwright MCP server later runs
+# as the non-root `claude` user and must be able to find the browser.
+# PLAYWRIGHT_BROWSERS_PATH persists into the image env, so the MCP server inherits it.
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+RUN npx --ignore-scripts=false playwright install --with-deps chromium \
+    && chmod -R a+rX /opt/ms-playwright
 
 # ── Pre-fetch MCP server packages ───────────────────────────────────────────
 RUN npx --yes --ignore-scripts=false @playwright/mcp@latest --help > /dev/null \

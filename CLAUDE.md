@@ -20,6 +20,8 @@ podman-compose build --no-cache             # clean rebuild
 - `Dockerfile` — project image example extending the base (Java, Gradle, Maven, .NET)
 - `docker-compose.yml` — service definitions with volume mounts
 - `claude-docker.sh` — wrapper script for CLI usage
+- `rebuild.sh` — rebuild base + project images (`--no-cache`/`--base`/`--project`)
+- `test.sh` — smoke-test installed tools + versions inside the image (`./test.sh` or `./test.sh base`); expected versions are pinned at the top and must stay in sync with the Dockerfiles
 - `container/` — files copied into the Docker image:
   - `claude-config.json` — Claude Code config: MCP servers, onboarding, workspace trust
   - `claude-container-instructions.md` — instructions for Claude Code inside the container (copied as `~/.claude/CLAUDE.md` at startup)

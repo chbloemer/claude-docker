@@ -72,6 +72,17 @@ Or rebuild both images in one step with the helper script:
 
 On the first start you'll be prompted to authenticate (see [Authentication](#authentication)).
 
+### Verifying the image
+
+After a build, smoke-test that every tool the Dockerfiles install is present and at the expected version:
+
+```bash
+./test.sh           # test the project image (Java, Maven, .NET, …)
+./test.sh base      # test the base image only
+```
+
+The script pipes itself into the container, runs version checks, and prints a `✓ / ! / ?` report with a pass/warn/fail summary (exit code non-zero on failure). Expected versions live at the top of `test.sh` — keep them in sync when bumping a pin in a Dockerfile.
+
 ## Extending the base image
 
 Create a `Dockerfile` in your project that starts from the base:
@@ -198,6 +209,7 @@ claude-docker/
 ├── docker-compose.yml     # Service definitions with volume mounts
 ├── claude-docker.sh       # Wrapper script for CLI usage
 ├── rebuild.sh             # Helper script to rebuild the base + project images
+├── test.sh                # Smoke-test: verify installed tools + versions in the image
 ├── container/
 │   ├── claude-config.json                # Claude Code config: MCP servers, onboarding, workspace trust
 │   ├── claude-container-instructions.md  # Instructions for Claude Code inside the container
