@@ -1,6 +1,6 @@
 .env
 *.log
 .serena/
-.claude/settings.local.json
+.claude/
 .idea/
 bin/
