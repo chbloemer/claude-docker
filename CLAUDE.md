@@ -22,6 +22,7 @@ podman-compose build --no-cache             # clean rebuild
 - `claude-docker.sh` — wrapper script for CLI usage
 - `rebuild.sh` — rebuild base + project images (`--no-cache`/`--base`/`--project`)
 - `test.sh` — host-side smoke-test: pipes `container/checks.sh` into the image (`./test.sh` or `./test.sh base`)
+- `detect-compose.sh` — sourced by the three host scripts above; sets `COMPOSE` to the first available compose command (`podman compose` → `podman-compose` → `docker compose` → `docker-compose`)
 - `container/` — files copied into the Docker image:
   - `claude-config.json` — Claude Code config: MCP servers, onboarding, workspace trust
   - `claude-container-instructions.md` — instructions for Claude Code inside the container (copied as `~/.claude/CLAUDE.md` at startup)

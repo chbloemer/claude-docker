@@ -16,8 +16,7 @@ export HOST_MEMORY_DIR
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-if command -v podman-compose &>/dev/null; then
-    cd "$SCRIPT_DIR" && exec podman-compose run --rm claude "$@"
-else
-    cd "$SCRIPT_DIR" && exec docker compose run --rm claude "$@"
-fi
+# Sets COMPOSE to the first available compose command.
+source "$SCRIPT_DIR/detect-compose.sh"
+
+cd "$SCRIPT_DIR" && exec $COMPOSE run --rm claude "$@"

@@ -18,11 +18,8 @@ cd "$(dirname "$(readlink -f "$0")")"
 SERVICE="${1:-claude}"
 export WORKSPACE_PATH="${WORKSPACE_PATH:-.}"
 
-if command -v podman-compose &>/dev/null; then
-    COMPOSE="podman-compose"
-else
-    COMPOSE="docker compose"
-fi
+# Sets COMPOSE to the first available compose command.
+source "$(dirname "$(readlink -f "$0")")/detect-compose.sh"
 
 # The base service has profile "build" — enable it so it's runnable.
 PROFILE=()

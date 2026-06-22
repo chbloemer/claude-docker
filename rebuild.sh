@@ -17,6 +17,9 @@ set -euo pipefail
 # Always run from the directory containing this script (the project root).
 cd "$(dirname "$0")"
 
+# Sets COMPOSE to the first available compose command.
+source "$(dirname "$(readlink -f "$0")")/detect-compose.sh"
+
 NO_CACHE=""
 BUILD_BASE=true
 BUILD_PROJECT=true
@@ -40,12 +43,12 @@ done
 
 if [ "$BUILD_BASE" = true ]; then
   echo "==> Building base image (claude-code-base)..."
-  podman-compose --profile build build $NO_CACHE base
+  $COMPOSE --profile build build $NO_CACHE base
 fi
 
 if [ "$BUILD_PROJECT" = true ]; then
   echo "==> Building project image (claude)..."
-  podman-compose build $NO_CACHE claude
+  $COMPOSE build $NO_CACHE claude
 fi
 
 echo "==> Done."
