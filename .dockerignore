@@ -1,0 +1,6 @@
+# Host-only cruft that must never enter the build context.
+.git
+.DS_Store
+slides/
+slidev-prompt.md
+**/node_modules
