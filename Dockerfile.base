@@ -46,7 +46,11 @@ COPY container/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
 
 # ── Non-root user (UID matches host user so mounted files are read/writable) ─
+# The node:22-bookworm base ships a `node` user at UID 1000 — the same UID the
+# first user gets on most Linux distros. Without removing it, a build with
+# HOST_UID=1000 fails with "useradd: UID 1000 is not unique". We don't use node.
 ARG HOST_UID=501
+RUN userdel -r node 2>/dev/null || true
 RUN useradd -m -s /bin/bash -G sudo -u ${HOST_UID} claude \
     && echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && echo "claude:100000:65536" >> /etc/subuid \
