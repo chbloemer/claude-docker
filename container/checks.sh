@@ -13,7 +13,7 @@
 # No `set -e` — we want every check to run even if an earlier one fails.
 
 # ── Expected versions (keep in sync with the Dockerfiles) ────────────────────
-EXPECT_NODE="v22"
+EXPECT_NODE="${EXPECT_NODE:-v22}"   # override for non-default NODE_VERSION builds
 EXPECT_DELTA="0.18.2"      # Dockerfile.base GIT_DELTA_VERSION
 EXPECT_UV="0.11.19"        # Dockerfile.base UV_VERSION
 EXPECT_JAVA="25.0.2"       # Dockerfile  sdk default java

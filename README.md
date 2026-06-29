@@ -70,6 +70,14 @@ Or rebuild both images in one step with the helper script:
 ./rebuild.sh --project   # rebuild only the project image
 ```
 
+The base image's Node version defaults to 22. Override it per team/project by
+setting `NODE_VERSION` when building the base:
+
+```bash
+NODE_VERSION=20 podman-compose --profile build build base
+# or directly: podman build --build-arg NODE_VERSION=20 -f Dockerfile.base .
+```
+
 On the first start you'll be prompted to authenticate (see [Authentication](#authentication)).
 
 ### Verifying the image

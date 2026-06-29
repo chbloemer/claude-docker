@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile.base
       args:
         HOST_UID: ${HOST_UID:-501}
+        NODE_VERSION: ${NODE_VERSION:-22}
     image: claude-code-base
     entrypoint: ["true"]
     profiles:

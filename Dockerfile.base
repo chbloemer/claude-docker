@@ -1,4 +1,7 @@
-FROM node:22-bookworm
+# Node major version. Override per team/project: --build-arg NODE_VERSION=20
+# (an ARG before FROM is only usable in the FROM line; that is all we need.)
+ARG NODE_VERSION=22
+FROM node:${NODE_VERSION}-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
